@@ -6,22 +6,22 @@ import java.util.Random;
 
 public class Agent {
 
-    private String guess;
-    private int prevPicas;
+    private String guess;//Adivinanza de turno
+    private int prevPicas;//memoria de resultado anterior
     private int prevFijas;
-    private int picas;
+    private int picas;//memoria de resultado mas reciente
     private int fijas;
     private boolean stage; //delimita si ya se conocen los 4 digitos del numero
     private int[][] known; //guarda fijas o picas (1, 0) para etapa de los 4 digitos conocidos
-    private int equalCounter;
-    private int acc;
-    private boolean group;
-    private ArrayList<String> permutations;
+    private int equalCounter;//contador de mismos resultados para etapa de obtener digitos
+    private int acc;//cuenta numero de digitos conocidos
+    private boolean group;//determina si ya se crearon permutaciones de los 4 digitos
+    private ArrayList<String> permutations;//lista de permutaciones de los 3 o 4 digitos
     private Random random;
-    private boolean midPhase;
-    private boolean used;
+    private boolean midPhase;//etapa para sacar digitos de 6-7-8-9
+    private boolean used;//determina si ya se uso el numero para adivinar en la parte de 6-7-8-9
 
-    public Agent(){
+    public Agent(){//inicializa el agente para jugar desde cero
         this.guess="0789";
         this.prevPicas=0;
         this.prevFijas=0;
@@ -62,16 +62,16 @@ public class Agent {
             this.used=false;
             return finalGuess;
         }
-        return "WAITING VALID STATE";
+        return "WAITING VALID STATE";//espera recibir una entrada valida para actuar
     }
     public String compute(String action, int picas, int fijas){
-        if (action.equals("continue")){
-            this.prevPicas=this.picas;
+        if (action.equals("continue")){//juega un turno
+            this.prevPicas=this.picas;//actualiza valores historicos
             this.prevFijas=this.fijas;
             this.picas=picas;
             this.fijas=fijas;
 
-            if (!this.stage&&!this.midPhase){
+            if (!this.stage&&!this.midPhase){//primera parte del juego, determina digitos entre 0-5
 
                 if (this.fijas + this.picas > 3){ //se consiguen los 4 digitos, 789 son parte
 
@@ -85,7 +85,7 @@ public class Agent {
 
                 }else if(!this.guess.equals("0789")){ //para turno 2 en adelante
                     //para conseguir los 4 digitos
-                    if(this.fijas<this.prevFijas&&this.guess.equals("1789")){
+                    if(this.fijas<this.prevFijas&&this.guess.equals("1789")){//para turno 2, evalua el 0 en posicion 0
                         this.known[0][0]=0;
                         this.known[0][1]=1;
                         this.acc++;
@@ -137,8 +137,8 @@ public class Agent {
                         this.equalCounter=0;
 
                     }
-                    this.guess=this.guess.replace(this.guess.charAt(0), (char) (this.guess.charAt(0)+1));
-                    if (this.guess.equals("7789")){
+                    this.guess=this.guess.replace(this.guess.charAt(0), (char) (this.guess.charAt(0)+1));//siguiente adivinanza es (n+1)789
+                    if (this.guess.equals("7789")){//si llega aca, hay digitos entre 6-9, pasa a segunda parte
                         this.midPhase=true;
                     }
 
@@ -150,169 +150,61 @@ public class Agent {
                 }
 
             }
-            if (!this.stage&&this.midPhase){//si entra en estos if, en 789 hay digito(s) del numero
+            if (!this.stage&&this.midPhase){//segunda parte del juego, determina digitos entre 6-9
 
-                boolean p = true;
-                int q = random.nextInt(6);
-                while(p){
-                    if (this.guess.contains(String.valueOf(q))){
-                        q = random.nextInt(6);
-                        p =true;
-                    }else{
-                        p=false;
-                    }
-                    for (int i = 0; i<4; i++){
-                        if (this.known[i][0]==q){
-                            q = random.nextInt(6);
-                            p=true;
-                            break;
-                        }else{
-                            p=false;
-                        }
-                    }
-                }
+                int q = random.nextInt(5);
+                q = getQ(q);//obtiene digito que se considera, no esta en el numero
 
-                if(this.used){
-                    System.out.println(this.acc);
+                if(this.used){//avalua resultados de una adivinanza de la segunda parte, si se reduce picas+fijas, se añaden digitos al numero
                     if (this.fijas+this.picas<this.prevFijas+this.prevPicas){
+                        int num;
                         if (this.guess.contains("8")){
+                            num=7;
                             if (this.fijas+this.picas<this.prevFijas+this.prevPicas-1){
-                                int i = 1;
-                                while(i<3&&this.known[i][0]!=-1){
-                                    i++;
-                                }
-                                if (this.known[0][0]==-1){i=0;}
-                                this.known[i][0]=7;
-                                this.known[i][1]=0;
-                                this.acc++;
-                                System.out.println(Arrays.deepToString(this.known));
-                                if(this.acc>=4){ //si entra aca, ya se tienen los digitos
-                                    this.stage=true;
-                                    this.midPhase=false;
-                                }
+                                addToKnown(num);
                             }
-                            if (this.picas+this.fijas==0){
-                                int i = 1;
-                                while(i<3&&this.known[i][0]!=-1){
-                                    i++;
-                                }
-                                if (this.known[0][0]==-1){i=0;}
-                                this.known[i][0]=6;
-                                this.known[i][1]=0;
-                                this.acc++;
-                                System.out.println(Arrays.deepToString(this.known));
-                                if(this.acc>=4){ //si entra aca, ya se tienen los digitos
-                                    this.stage=true;
-                                    this.midPhase=false;
-                                }
-                            }
+                            checkIfAddSix();
+                            System.out.println(Arrays.deepToString(this.known));
                         }else if (this.guess.contains("9")){
-                            int i = 1;
-                            while(i<3&&this.known[i][0]!=-1){
-                                i++;
-                            }
-                            if (this.known[0][0]==-1){i=0;}
-                            this.known[i][0]=8;
-                            this.known[i][1]=0;
-                            this.acc++;
-                            System.out.println(Arrays.deepToString(this.known));
-                            if(this.acc>=4){ //si entra aca, ya se tienen los digitos
-                                this.stage=true;
-                                this.midPhase=false;
-                            }
-                            if (this.picas+this.fijas==0){
-                                i = 1;
-                                while(i<3&&this.known[i][0]!=-1){
-                                    i++;
-                                }
-                                if (this.known[0][0]==-1){i=0;}
-                                this.known[i][0]=6;
-                                this.known[i][1]=0;
-                                this.acc++;
-                                System.out.println(Arrays.deepToString(this.known));
-                                if(this.acc>=4){ //si entra aca, ya se tienen los digitos
-                                    this.stage=true;
-                                    this.midPhase=false;
-                                }
-                            }
+                            num=8;
+                            addToKnown(num);
+                            checkIfAddSix();
                         }else{
-                            int i = 1;
-                            while(i<3&&this.known[i][0]!=-1){
-                                i++;
-                            }
-                            if (this.known[0][0]==-1){i=0;}
-                            this.known[i][0]=9;
-                            this.known[i][1]=0;
-                            this.acc++;
-                            System.out.println(Arrays.deepToString(this.known));
-                            if(this.acc>=4){ //si entra aca, ya se tienen los digitos
-                                this.stage=true;
-                                this.midPhase=false;
-                            }
-                            if (this.picas+this.fijas==0){
-                                i = 1;
-                                while(i<3&&this.known[i][0]!=-1){
-                                    i++;
-                                }
-                                if (this.known[0][0]==-1){i=0;}
-                                this.known[i][0]=6;
-                                this.known[i][1]=0;
-                                this.acc++;
-                                System.out.println(Arrays.deepToString(this.known));
-                                if(this.acc>=4){ //si entra aca, ya se tienen los digitos
-                                    this.stage=true;
-                                    this.midPhase=false;
-                                }
-                            }
+                            num=9;
+                            addToKnown(num);
+                            checkIfAddSix();
                         }
                     }
                 }
 
-                if (this.guess.contains("7")){
+                if (this.guess.contains("7")){//si es 7789, quita los 7 por 2 numeros que se crean que no estan en el numero
 
-                    this.guess = String.valueOf(q)+this.guess.substring(1);
-                     p = true;
-                     q = random.nextInt(6);
-                    while(p){
-                        if (this.guess.contains(String.valueOf(q))){
-                            q = random.nextInt(6);
-                            p =true;
-                        }else{
-                            p=false;
-                        }
-                        for (int i = 0; i<4; i++){
-                            if (this.known[i][0]==q){
-                                q = random.nextInt(6);
-                                p=true;
-                                break;
-                            }else{
-                                p=false;
-                            }
-                        }
-                    }
-                    this.guess = this.guess.substring(0,1)+String.valueOf(q)+this.guess.substring(2);
+                    this.guess = q +this.guess.substring(1);
+                    q = random.nextInt(5);
+                    q = getQ( q);
+                    this.guess = this.guess.substring(0,1)+ q +this.guess.substring(2);
                     this.used=true;
 
-                }else if (this.guess.contains("8")){
+                }else if (this.guess.contains("8")){//se quita el 8 por un numero que se crea que no esta en el numero
 
-                    this.guess = this.guess.substring(0,2)+String.valueOf(q)+this.guess.substring(3);
+                    this.guess = this.guess.substring(0,2)+ q +this.guess.substring(3);
                     this.used=true;
 
-                }else if (this.guess.contains("9")){
+                }else if (this.guess.contains("9")){//se quita el 9 por un numero que se crea que no esta en el numero
 
-                    this.guess = this.guess.substring(0,3)+String.valueOf(q);
+                    this.guess = this.guess.substring(0,3)+ q;
                     this.used=true;
 
                 }
 
             }
 
-            if (this.stage){
+            if (this.stage){//tercera parte del juego, determina orden de digitos conocidos
                 //para adivinar orden de digitos
                 this.guess="";
                 if (this.known[0][1]==1){this.guess = String.valueOf(this.known[0][0]);}
-                if (!this.group){//crea combinaciones posibles
-                    String temp = "";
+                if (!this.group){//crea combinaciones posibles, si hay fija en pos 0, son solo 6, si no, son 24
+                    String temp;
                     if (this.known[0][1]==1){
                         temp = String.valueOf(this.known[1][0])+ this.known[2][0] + this.known[3][0];
                         this.guess = String.valueOf(this.known[0][0]);
@@ -323,16 +215,75 @@ public class Agent {
                     this.group=true;
                 }
 
-                this.guess+=this.permutations.remove(this.random.nextInt(this.permutations.size()));
+                this.guess+=this.permutations.remove(this.random.nextInt(this.permutations.size()));//advina permutacion correcta del numero al azar
 
 
             }
             return this.guess;
         }
-        return "WAITING VALID STATE";
+        return "WAITING VALID STATE";//espera recibir una entrada valida para actuar
     }
 
-    private ArrayList<String> allPermutation(String str) { //genera todas las permutaciones de la fase 2
+    private void checkIfAddSix() {//evalua si debe añadir digitos desde el 6 para atras en la etapa 6-7-8-9
+        int i;
+        if (this.picas+this.fijas==0){
+            for (int j = 0; j<equalCounter; j++){
+                i = 1;
+                while(i<3&&this.known[i][0]!=-1){
+                    i++;
+                }
+                this.known[i][0]=6-j;
+                this.known[i][1]=0;
+                this.acc++;
+                if (this.acc>=4) { //si entra aca, ya se tienen los digitos
+                    this.stage=true;
+                    this.midPhase=false;
+                    break;
+                }
+            }
+            this.equalCounter=0;
+        }
+    }
+
+    private void addToKnown(int num) {//Añade digitos en la etapa 6-7-8-9
+        int i;
+        i = 1;
+        while(i<3&&this.known[i][0]!=-1){
+            i++;
+        }
+        if (this.known[0][0]==-1){i=0;}
+        this.known[i][0]=num;
+        this.known[i][1]=0;
+        this.acc++;
+        if(this.acc>=4){ //si entra aca, ya se tienen los digitos
+            this.stage=true;
+            this.midPhase=false;
+        }
+    }
+
+    private int getQ( int q) { //obtiene un digito que se cree no esta en el numero
+        boolean p = true;
+        while(p){
+            if (this.guess.contains(String.valueOf(q))){
+                q = random.nextInt(5 );
+                p =true;
+            }else{
+                p=false;
+            }
+            for (int i = 0; i<4; i++){
+                if (this.known[i][0]==q){
+                    q = random.nextInt(5);
+                    p=true;
+                    break;
+                }else{
+                    p=false;
+                }
+            }
+        }
+        return q;
+    }
+
+    private ArrayList<String> allPermutation(String str) { //genera todas las permutaciones de la fase con digitos conocidos
         if (str.length()==0){
             ArrayList<String> baseResult= new ArrayList<>();
             baseResult.add("");
@@ -342,8 +293,7 @@ public class Agent {
         String rest = str.substring(1);
         ArrayList<String> recResult = allPermutation(rest);
         ArrayList<String> myResult = new ArrayList<>();
-        for (int i = 0; i < recResult.size(); i++) {
-            String s = recResult.get(i);
+        for (String s : recResult) {
             for (int j = 0; j <= s.length(); j++) {
                 String newString = s.substring(0, j) + ch + s.substring(j);
                 myResult.add(newString);

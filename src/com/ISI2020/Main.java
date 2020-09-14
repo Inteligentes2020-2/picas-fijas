@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("InfiniteLoopStatement")
 public class Main {
 
     public static void main(String[] args) throws IOException {
@@ -16,7 +17,7 @@ public class Main {
         while (true){
             System.out.println("Escribe un numero de 4 digitos sin repetir");
             String pattern = "^(?!.*(.).*\\1)\\d{4}$";
-            String number = "----";
+            String number;
             Pattern r = Pattern.compile(pattern);
             while(true){
                 number = reader.readLine();
