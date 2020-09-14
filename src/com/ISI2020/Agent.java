@@ -164,16 +164,18 @@ public class Agent {
                                 addToKnown(num);
                             }
                             checkIfAddSix();
-                            System.out.println(Arrays.deepToString(this.known));
                         }else if (this.guess.contains("9")){
+                            this.equalCounter=0;
                             num=8;
                             addToKnown(num);
                             checkIfAddSix();
                         }else{
+                            this.equalCounter=0;
                             num=9;
                             addToKnown(num);
                             checkIfAddSix();
                         }
+                        System.out.println(Arrays.deepToString(this.known));
                     }
                 }
 
@@ -181,7 +183,7 @@ public class Agent {
 
                     this.guess = q +this.guess.substring(1);
                     q = random.nextInt(5);
-                    q = getQ( q);
+                    q = getQ(q);
                     this.guess = this.guess.substring(0,1)+ q +this.guess.substring(2);
                     this.used=true;
 
@@ -246,6 +248,7 @@ public class Agent {
     }
 
     private void addToKnown(int num) {//Añade digitos en la etapa 6-7-8-9
+        System.out.println(num);
         int i;
         i = 1;
         while(i<3&&this.known[i][0]!=-1){

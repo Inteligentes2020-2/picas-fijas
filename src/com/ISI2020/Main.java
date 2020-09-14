@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        //Este bloque pide un input valido del numero de jeugo de usuario
+        //Este bloque pide un input valido del numero de juego de usuario
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("Bienvenido programa que jeuga picas y fijas");
         while (true){
